@@ -1,0 +1,7 @@
+Service Status Report
+---------------------
+Prometheus: Not Installed
+Grafana: Running
+Windows Exporter: Not Installed
+DaVinci Resolve Exporter: Not Installed
+
