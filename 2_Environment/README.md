@@ -106,10 +106,19 @@ This section details the manual installation and configuration of each component
 
 #### 2. Install Grafana
 
-1.  **Download Grafana**: Go to the [Grafana downloads page](https://grafana.com/grafana/download?platform=windows) and download the latest Windows installer (e.g., `grafana-*.windows-amd64.msi`).
-2.  **Install**: Run the installer and follow the prompts. Grafana will typically be installed to `C:\Program Files\GrafanaLabs\grafana`. It will also set itself up as a Windows service.
-3.  **Start Grafana Service**: The installer usually starts the service automatically. If not, open Services (services.msc), find "Grafana", and start it.
-4.  **Access Grafana**: Open your web browser and navigate to `http://localhost:3000`. Default login is `admin`/`admin`.
+1.  **Using Winget (Recommended)**:
+    ```powershell
+    winget install GrafanaLabs.Grafana.OSS
+    ```
+    This will download and install Grafana, typically setting it up as a Windows service that starts automatically.
+    
+2.  **Manual Installation (if Winget is not preferred or available)**:
+    *   **Download Grafana**: Go to the [Grafana downloads page](https://grafana.com/grafana/download?platform=windows) and download the latest Windows installer (e.g., `grafana-*.windows-amd64.msi`).
+    *   **Install**: Run the installer and follow the prompts. Grafana will typically be installed to `C:\Program Files\GrafanaLabs\grafana`. It will also set itself up as a Windows service.
+
+3.  **Verify and Access Grafana**:
+    *   **Start Grafana Service**: The installer (either `winget` or manual) usually starts the service automatically. If not, open Windows Services (search for `services.msc`), find the service named 'Grafana', and start it manually.
+    *   **Access Grafana**: Open your web browser and navigate to `http://localhost:3000`. The default login credentials are `admin` for both username and password.
 
 #### 3. Install Windows Exporter
 
