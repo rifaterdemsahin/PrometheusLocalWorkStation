@@ -1,0 +1,5 @@
+# Python dependencies for DaVinci Resolve Exporter and tests
+prometheus-client>=0.17.0
+psutil>=5.9.0
+watchdog>=3.0.0
+requests>=2.31.0
