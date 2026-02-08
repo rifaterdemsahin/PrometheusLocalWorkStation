@@ -92,13 +92,29 @@ This section details the manual installation and configuration of each component
 
 #### 1. Install Prometheus
 
-1.  **Download Prometheus**: Go to the [Prometheus downloads page](https://prometheus.io/download/) and download the latest Windows release (e.g., `prometheus-*.windows-amd64.zip`).
-2.  **Extract**: Extract the contents of the zip file to a directory of your choice, e.g., `C:\Prometheus`.
-3.  **Configure**: Copy the `2_Environment/prometheus.yml` file from this repository to your Prometheus installation directory (`C:\Prometheus`).
-4.  **Create Windows Service using NSSM**:
+1.  **Using Chocolatey (Recommended)**:
     ```powershell
-    nssm install Prometheus C:\Prometheus\prometheus.exe --config.file="C:\Prometheus\prometheus.yml"
-    nssm set Prometheus AppDirectory C:\Prometheus
+    choco install prometheus -y
+    ```
+    This will download and install Prometheus, typically to `C:\ProgramData\chocolatey\lib\prometheus\tools`.
+    
+2.  **Manual Installation (if Chocolatey is not preferred or available)**:
+    *   **Download Prometheus**: Go to the [Prometheus downloads page](https://prometheus.io/download/) and download the latest Windows release (e.g., `prometheus-*.windows-amd64.zip`).
+    *   **Extract**: Extract the contents of the zip file to a directory of your choice, e.g., `C:\Prometheus`.
+
+3.  **Configure Prometheus**:
+    *   Copy the `2_Environment/prometheus.yml` file from **this repository** to your Prometheus installation directory.
+        *   If installed via Chocolatey, this is typically `C:\ProgramData\chocolatey\lib\prometheus\tools`.
+        *   If manually installed, this is your chosen directory, e.g., `C:\Prometheus`.
+
+4.  **Create Windows Service using NSSM (Optional but Recommended for Auto-Start)**:
+    *   Prometheus installed via Chocolatey might not automatically set itself up as a Windows service. If you want Prometheus to run automatically at system startup, you can create a service using NSSM.
+    *   First, locate the `prometheus.exe` executable.
+        *   For Chocolatey installations, this is typically `C:\ProgramData\chocolatey\lib\prometheus\tools\prometheus.exe`.
+        *   For manual installations, it's `C:\Prometheus\prometheus.exe` (or your chosen path).
+    ```powershell
+    nssm install Prometheus C:\ProgramData\chocolatey\lib\prometheus\tools\prometheus.exe --config.file="C:\ProgramData\chocolatey\lib\prometheus\tools\prometheus.yml"
+    nssm set Prometheus AppDirectory C:\ProgramData\chocolatey\lib\prometheus\tools
     nssm set Prometheus Description "Prometheus monitoring server"
     nssm start Prometheus
     ```

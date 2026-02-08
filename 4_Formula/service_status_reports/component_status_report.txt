@@ -1,6 +1,6 @@
 Service Status Report
 ---------------------
-Prometheus: Not Installed
+Prometheus: Accessible but not Ready (HTTP Check)
 Grafana: Running
 Windows Exporter: Running
 DaVinci Resolve Exporter: Not Installed
