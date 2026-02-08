@@ -52,12 +52,13 @@ This project uses a unique seven-folder structure that represents a holistic dev
 
 ## Components
 
-### Installed Components
+### Installed Components (Native Windows Installation)
 
 1.  **Prometheus** (v2.45.0+) - Time-series database and monitoring system
 2.  **Windows Exporter** (v0.25.0+) - System metrics collector for Windows
 3.  **DaVinci Resolve Custom Exporter** - Custom metrics for DaVinci Resolve
 4.  **Grafana** (v10.0.0+) - Dashboard and visualization platform
+5.  **NSSM (Non-Sucking Service Manager)** - Tool to run applications as Windows services
 
 ### Metrics Collected
 
@@ -77,31 +78,75 @@ This project uses a unique seven-folder structure that represents a holistic dev
 - Log file monitoring (errors, warnings)
 - Log file size tracking
 
-## Quick Start
+## Quick Start (Native Windows Installation)
 
-### Windows Installation
+This section details the manual installation and configuration of each component required to run the monitoring stack natively on Windows.
 
-1.  **Clone the repository**:
+### Prerequisites
+
+*   **Windows Operating System**: Windows 10/11
+*   **Python 3.x**: Installed and added to PATH (for DaVinci Resolve Exporter)
+*   **NSSM**: Download the latest version of [NSSM (Non-Sucking Service Manager)](https://nssm.cc/download) and extract `nssm.exe` to a directory included in your system's PATH (e.g., `C:\Windows\System32` or a custom `C:\Tools` folder).
+
+### Installation Steps
+
+#### 1. Install Prometheus
+
+1.  **Download Prometheus**: Go to the [Prometheus downloads page](https://prometheus.io/download/) and download the latest Windows release (e.g., `prometheus-*.windows-amd64.zip`).
+2.  **Extract**: Extract the contents of the zip file to a directory of your choice, e.g., `C:\Prometheus`.
+3.  **Configure**: Copy the `2_Environment/prometheus.yml` file from this repository to your Prometheus installation directory (`C:\Prometheus`).
+4.  **Create Windows Service using NSSM**:
     ```powershell
-    git clone https://github.com/rifaterdemsahin/PrometheusLocalWorkStation.git
-    cd PrometheusLocalWorkStation
+    nssm install Prometheus C:\Prometheus\prometheus.exe --config.file="C:\Prometheus\prometheus.yml"
+    nssm set Prometheus AppDirectory C:\Prometheus
+    nssm set Prometheus Description "Prometheus monitoring server"
+    nssm start Prometheus
     ```
+    *Note: Adjust paths if your Prometheus installation differs.*
 
-2.  **Run the installation script as Administrator**:
+#### 2. Install Grafana
+
+1.  **Download Grafana**: Go to the [Grafana downloads page](https://grafana.com/grafana/download?platform=windows) and download the latest Windows installer (e.g., `grafana-*.windows-amd64.msi`).
+2.  **Install**: Run the installer and follow the prompts. Grafana will typically be installed to `C:\Program Files\GrafanaLabs\grafana`. It will also set itself up as a Windows service.
+3.  **Start Grafana Service**: The installer usually starts the service automatically. If not, open Services (services.msc), find "Grafana", and start it.
+4.  **Access Grafana**: Open your web browser and navigate to `http://localhost:3000`. Default login is `admin`/`admin`.
+
+#### 3. Install Windows Exporter
+
+1.  **Download Windows Exporter**: Go to the [Windows Exporter releases page](https://github.com/prometheus-community/windows_exporter/releases) and download the latest Windows release (e.g., `windows_exporter-*.windows-amd64.zip`).
+2.  **Extract**: Extract the contents of the zip file to a directory of your choice, e.g., `C:\windows_exporter`.
+3.  **Create Windows Service using NSSM**:
     ```powershell
-    cd "2_Environment"
-    .\\install_windows.ps1
+    nssm install WindowsExporter C:\windows_exporter\windows_exporter.exe
+    nssm set WindowsExporter AppDirectory C:\windows_exporter
+    nssm set WindowsExporter Description "Prometheus Windows Exporter"
+    nssm start WindowsExporter
     ```
+    *Note: Adjust paths if your Windows Exporter installation differs.*
 
-3.  **Access the services**:
-    - Prometheus: http://localhost:9090
-    - Grafana: http://localhost:3000 (login: admin/admin)
-    - Windows Exporter: http://localhost:9182/metrics
-    - DaVinci Resolve Exporter: http://localhost:9183/metrics
+#### 4. Install DaVinci Resolve Custom Exporter
 
-### Manual Installation
+1.  **Install Python Dependencies**:
+    ```powershell
+    pip install -r 2_Environment/requirements.txt
+    ```
+2.  **Locate Exporter Script**: The Python script is located at `5_Symbols/davinci_resolve_exporter.py` in this repository.
+3.  **Create Windows Service using NSSM**:
+    ```powerspowershell
+    nssm install DaVinciResolveExporter C:\Python3x\python.exe "C:\projects\PrometheusLocalWorkStation\5_Symbols\davinci_resolve_exporter.py"
+    nssm set DaVinciResolveExporter AppDirectory "C:\projects\PrometheusLocalWorkStation\5_Symbols"
+    nssm set DaVinciResolveExporter Description "Prometheus DaVinci Resolve Custom Exporter"
+    nssm start DaVinciResolveExporter
+    ```
+    *Note: Replace `C:\Python3x\python.exe` with the actual path to your Python executable.*
 
-For detailed manual installation steps, see [2_Environment/WINDOWS_INSTALL.md](2_Environment/WINDOWS_INSTALL.md).
+### Access the Services
+
+Once all services are running:
+-   Prometheus: http://localhost:9090
+-   Grafana: http://localhost:3000 (login: admin/admin)
+-   Windows Exporter: http://localhost:9182/metrics
+-   DaVinci Resolve Exporter: http://localhost:9183/metrics
 
 ## Testing
 
@@ -110,21 +155,14 @@ The project includes comprehensive test suites to verify component functionality
 ### Test the Metrics Exporter
 
 ```bash
-# Install dependencies
-pip install -r 2_Environment/requirements.txt
-
-# Start the DaVinci Resolve Exporter
-python 5_Symbols/davinci_resolve_exporter.py
-
-# In another terminal, run tests
+# Ensure DaVinci Resolve Exporter is running (as a Windows Service)
 python 7_Testing/test_metrics_exporter.py
 ```
 
 ### Test Grafana Connectivity
 
 ```bash
-# Ensure Grafana is running
-# Run Grafana tests
+# Ensure Grafana and Prometheus are running (as Windows Services)
 python 7_Testing/test_grafana_connectivity.py
 ```
 
@@ -133,7 +171,7 @@ python 7_Testing/test_grafana_connectivity.py
 ### Import the DaVinci Resolve Dashboard
 
 1.  Open Grafana at http://localhost:3000
-2.  Login with default credentials (admin/admin)
+2.  Login with default credentials (`admin`/`admin`)
 3.  Navigate to **Configuration → Data Sources**
 4.  Click **Add data source** → Select **Prometheus**
 5.  Set URL to `http://localhost:9090`
@@ -157,26 +195,41 @@ The pre-configured dashboard includes:
 
 ### Prometheus Configuration
 
-The Prometheus configuration is located at `2_Environment/prometheus.yml`. Key settings:
+The Prometheus configuration is located at `C:\Prometheus\prometheus.yml` (assuming your installation path). Key settings:
 
 - Scrape interval: 15 seconds
 - Retention period: 30 days
 - Maximum storage: 10GB
 
+You will need to ensure your `prometheus.yml` is configured to scrape the native Windows Exporter and DaVinci Resolve Exporter. An example `scrape_configs` section might look like this:
+
+```yaml
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'windows_exporter'
+    static_configs:
+      - targets: ['localhost:9182']
+
+  - job_name: 'davinci_resolve_exporter'
+    static_configs:
+      - targets: ['localhost:9183']
+```
+
 ### DaVinci Resolve Exporter Configuration
 
-The exporter can be configured using environment variables:
+The exporter can be configured using environment variables. When running as a service via NSSM, you can set these environment variables using `nssm set <servicename> AppEnvironmentExtra`.
 
-```bash
+```powershell
 # Port (default: 9183)
-set EXPORTER_PORT=9183
+nssm set DaVinciResolveExporter AppEnvironmentExtra EXPORTER_PORT=9183
 
 # Scrape interval in seconds (default: 30)
-set SCRAPE_INTERVAL=30
-
-# Run the exporter
-python 5_Symbols/davinci_resolve_exporter.py
+nssm set DaVinciResolveExporter AppEnvironmentExtra SCRAPE_INTERVAL=30
 ```
+Then restart the service: `nssm restart DaVinciResolveExporter`.
 
 ## Architecture
 
@@ -206,9 +259,9 @@ python 5_Symbols/davinci_resolve_exporter.py
 ### Common Issues
 
 **Prometheus not starting**
-- Check configuration: `2_Environment/prometheus.yml`
+- Check configuration: `C:\Prometheus\prometheus.yml`
 - Verify YAML syntax is correct
-- Check logs for errors
+- Check service logs (Event Viewer) for errors.
 
 **Windows Exporter not collecting GPU metrics**
 - Ensure GPU drivers are up to date
@@ -218,12 +271,13 @@ python 5_Symbols/davinci_resolve_exporter.py
 **DaVinci Resolve Exporter not finding logs**
 - Check DaVinci Resolve installation path
 - Default log location: `C:\ProgramData\Blackmagic Design\DaVinci Resolve\logs`
-- Verify Python dependencies are installed
+- Verify Python dependencies are installed.
+- Check NSSM service logs for errors.
 
 **Grafana dashboard shows no data**
-- Verify Prometheus data source is configured correctly
-- Check that all exporters are running
-- Ensure metrics are being scraped (check Prometheus targets)
+- Verify Prometheus data source is configured correctly in Grafana.
+- Check that all exporters and Prometheus are running as Windows services.
+- Ensure metrics are being scraped (check Prometheus targets UI at `http://localhost:9090/targets`).
 
 ## Development
 
@@ -233,7 +287,6 @@ python 5_Symbols/davinci_resolve_exporter.py
 PrometheusLocalWorkStation/
 ├── 1_Real/                          # Objectives & Key Results (OKRs)
 ├── 2_Environment/                   # Roadmap, Use Cases, Environment Setup
-│   ├── docker-compose.yml
 │   ├── install_windows.ps1
 │   ├── prometheus.yml
 │   ├── README.md
@@ -255,14 +308,10 @@ PrometheusLocalWorkStation/
 ### Running Tests Locally
 
 ```bash
-# Install Python dependencies
+# Ensure Python dependencies are installed
 pip install -r 2_Environment/requirements.txt
 
-# Start all services
-# - Prometheus
-# - Windows Exporter
-# - DaVinci Resolve Exporter
-# - Grafana
+# Ensure Prometheus, Grafana, Windows Exporter, and DaVinci Resolve Exporter are running as Windows services.
 
 # Run all tests
 python 7_Testing/test_metrics_exporter.py
@@ -281,7 +330,6 @@ This project is provided as-is for monitoring DaVinci Resolve workstations.
 
 For issues and questions:
 - Create an issue in the GitHub repository
-- Check the [2_Environment/WINDOWS_INSTALL.md](2_Environment/WINDOWS_INSTALL.md) for detailed setup instructions
 - Review the troubleshooting section above
 
 ## Acknowledgments
@@ -290,3 +338,4 @@ For issues and questions:
 - [Grafana](https://grafana.com/) - Analytics and monitoring platform
 - [Windows Exporter](https://github.com/prometheus-community/windows_exporter) - Windows metrics collector
 - [DaVinci Resolve](https://www.blackmagicdesign.com/products/davinciresolve/) - Video editing software by Blackmagic Design
+- [NSSM (Non-Sucking Service Manager)](https://nssm.cc/) - For running applications as Windows services
