@@ -126,12 +126,12 @@ This section details the manual installation and configuration of each component
 2.  **Extract**: Extract the contents of the zip file to a directory of your choice, e.g., `C:\windows_exporter`.
 3.  **Create Windows Service using NSSM**:
     ```powershell
-    nssm install WindowsExporter C:\windows_exporter\windows_exporter.exe
-    nssm set WindowsExporter AppDirectory C:\windows_exporter
-    nssm set WindowsExporter Description "Prometheus Windows Exporter"
-    nssm start WindowsExporter
+    nssm install windows_exporter C:\windows_exporter\windows_exporter.exe
+    nssm set windows_exporter AppDirectory C:\windows_exporter
+    nssm set windows_exporter Description "Prometheus Windows Exporter"
+    nssm start windows_exporter
     ```
-    *Note: Adjust paths if your Windows Exporter installation differs.*
+    *Note: The service name used with NSSM here is `windows_exporter`. Adjust paths if your Windows Exporter installation differs.*
 
 #### 4. Install DaVinci Resolve Custom Exporter
 
